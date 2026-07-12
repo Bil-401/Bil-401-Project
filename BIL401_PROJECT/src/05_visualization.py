@@ -1,7 +1,10 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+import os
 from pyspark.sql import SparkSession
+
+os.makedirs("reports", exist_ok=True)
 
 spark = SparkSession.builder.appName("Viz").master("local[*]").getOrCreate()
 

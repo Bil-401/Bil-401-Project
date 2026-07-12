@@ -15,9 +15,9 @@ model = PipelineModel.load("data/model/gbt_taxi_demand")
 # Feature store'dan özellikleri oku (yeniden hesaplamaya gerek yok)
 features = spark.read.parquet("data/feature_store/")
 
-# Örnek: Ekim 2019 verisi üzerinde batch inference
+# Örnek: Mart 2019 verisi üzerinde batch inference
 inference_data = features.filter(
-    col("hour_start") >= "2019-10-01"
+    col("hour_start") >= "2019-03-01"
 )
 
 # Tahmin yap

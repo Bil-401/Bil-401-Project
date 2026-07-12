@@ -1,4 +1,5 @@
 from pyspark.sql import SparkSession
+from pyspark.sql.functions import col
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.regression import GBTRegressor
 from pyspark.ml import Pipeline
@@ -21,8 +22,8 @@ assembler = VectorAssembler(
 )
 
 # Train/test split (kronolojik - shuffle etme!)
-train = df.filter(col("hour_start") < "2019-10-01")
-test  = df.filter(col("hour_start") >= "2019-10-01")
+train = df.filter(col("hour_start") < "2019-03-01")
+test  = df.filter(col("hour_start") >= "2019-03-01")
 
 # Model
 gbt = GBTRegressor(
@@ -50,4 +51,5 @@ print(f"RMSE: {evaluator_rmse.evaluate(predictions):.2f}")
 print(f"R²  : {evaluator_r2.evaluate(predictions):.4f}")
 
 # Modeli kaydet
-model.save("data/model/gbt_taxi_demand")
+# Modeli kaydet (Eski varsa üzerine yaz)
+model.write().overwrite().save("data/model/gbt_taxi_demand")
