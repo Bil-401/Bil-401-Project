@@ -1,17 +1,14 @@
-from pyspark.sql import SparkSession
 from pyspark.sql.functions import (
     col, hour, dayofweek, count, avg,
     lag, window
 )
 from pyspark.sql.window import Window
 
-spark = SparkSession.builder \
-    .appName("NYC_Taxi_Features") \
-    .config("spark.driver.memory", "8g") \
-    .master("local[*]") \
-    .getOrCreate()
+from project_config import create_spark_session, data_path
 
-df = spark.read.parquet("data/processed/taxi_clean")
+spark = create_spark_session("NYC_Taxi_Features")
+
+df = spark.read.parquet(data_path("processed", "taxi_clean"))
 
 # Saatlik talep aggregation (bu MapReduce wide shuffle'ı tetikler)
 df_hourly = df.groupBy(
@@ -46,6 +43,7 @@ df_features = df_hourly \
 df_features.write \
     .partitionBy("PULocationID") \
     .mode("overwrite") \
-    .parquet("data/feature_store/")
+    .parquet(data_path("feature_store"))
 
 print(f"Feature store oluşturuldu. Satır sayısı: {df_features.count():,}")
+spark.stop()

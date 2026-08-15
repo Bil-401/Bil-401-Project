@@ -1,14 +1,11 @@
-from pyspark.sql import SparkSession
-from pyspark.sql.functions import col, year, month
+from pyspark.sql.functions import col, year
 
-spark = SparkSession.builder \
-    .appName("NYC_Taxi_Ingestion") \
-    .config("spark.driver.memory", "8g") \
-    .master("local[*]") \
-    .getOrCreate()
+from project_config import create_spark_session, data_path
+
+spark = create_spark_session("NYC_Taxi_Ingestion")
 
 # Ham veriyi oku
-df = spark.read.parquet("data/raw/yellow_tripdata_2019-*.parquet")
+df = spark.read.parquet(data_path("raw", "yellow_tripdata_2019-*.parquet"))
 
 print(f"Toplam satır: {df.count():,}")
 print(f"Kolonlar: {df.columns}")
@@ -25,7 +22,7 @@ df_clean = df.filter(
 
 # Zone lookup join
 zone_lookup = spark.read.csv(
-    "data/raw/taxi_zone_lookup.csv", 
+    data_path("raw", "taxi_zone_lookup.csv"),
     header=True, 
     inferSchema=True
 )
@@ -37,5 +34,6 @@ df_joined = df_clean.join(
 )
 
 # Temiz veriyi kaydet
-df_joined.write.mode("overwrite").parquet("data/processed/taxi_clean")
+df_joined.write.mode("overwrite").parquet(data_path("processed", "taxi_clean"))
 print("Temiz veri kaydedildi.")
+spark.stop()

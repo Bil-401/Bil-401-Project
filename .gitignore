@@ -1,6 +1,7 @@
-# Spark verilerini ve çıktılarını engelle
-BIL401_PROJECT/data/
-BIL401_PROJECT/reports/*.png
-
-# Editör kalıntılarını engelle
-.vscode/
+401-project/data/
+401-project/reports/*.json
+*.part
+__pycache__/
+*.py[cod]
+.venv/
+venv/
