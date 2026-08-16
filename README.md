@@ -55,7 +55,6 @@ Bil-401-Project/
 ## Veri kaynakları
 
 - NYC TLC Yellow Taxi Trip Records: `https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page`
-- Aylık Parquet adres şablonu: `https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2019-AA.parquet`
 - Taksi bölgesi eşleme dosyası: `https://d37ci6vzurychx.cloudfront.net/misc/taxi_zone_lookup.csv`
 
 Ham veri, dosya boyutu nedeniyle teslim paketine eklenmez. İndirme betiği mevcut ve dolu dosyaları atlar; bu nedenle kesilen işlem yeniden başlatılabilir.

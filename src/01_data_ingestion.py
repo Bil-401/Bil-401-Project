@@ -21,6 +21,7 @@ df_clean = df.filter(
 )
 
 # Zone lookup join
+# eşleme bulunamayan yolculukların tamamen kaybolmasını önler ve veri kalitesi sorununu Unknown veya N/A kategorileri üzerinden gözlenebilir kılar.
 zone_lookup = spark.read.csv(
     data_path("raw", "taxi_zone_lookup.csv"),
     header=True, 
