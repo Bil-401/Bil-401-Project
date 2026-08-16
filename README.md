@@ -1,76 +1,134 @@
-# BIL401 - Distributed Taxi Demand Forecasting
+# Dağıtık Taksi Talep Tahmini
 
-This project implements an end-to-end, PySpark-based machine-learning data pipeline for hourly NYC Yellow Taxi demand forecasting at taxi-zone level. The validated experiment uses January-March 2019: 22,612,607 raw trip records are cleaned and aggregated into a 290,928-row feature store. A Spark MLlib Gradient-Boosted Tree regressor achieved RMSE 27.79 and R² 0.9610 on the chronological March test split.
+Bu proje, New York City Yellow Taxi yolculuk kayıtlarından taksi bölgesi bazında saatlik talep tahmini üreten uçtan uca bir PySpark veri hattıdır. Final deneyinde 2019 yılının 12 aylık Parquet dosyaları kullanılmıştır. Eğitim dönemi Ocak-Kasım, kronolojik test ve batch inference dönemi ise Aralık 2019'dur.
 
-## Pipeline
+## Doğrulanmış final sonuçları
 
-1. `01_data_ingestion.py`: reads NYC TLC Parquet files, applies quality filters, joins taxi-zone metadata, and writes cleaned Parquet.
-2. `02_feature_engineering.py`: performs hourly `groupBy`, window-based lag/rolling features, and writes a `PULocationID`-partitioned feature store.
-3. `03_model_training.py`: trains the MLlib GBT model on January-February, evaluates it on March, compares it with a lag-24h persistence baseline, and saves metrics.
-4. `04_inference.py`: reloads the saved pipeline model, performs March batch inference, and saves predictions and metrics.
-5. `05_visualization.py`: aggregates in Spark and collects only chart-sized outputs into Pandas.
+| Ölçüm | Sonuç |
+|---|---:|
+| Ham yolculuk kaydı | 84.598.444 |
+| Feature store satırı | 1.080.759 |
+| Aralık tahmin kaydı | 83.319 |
+| GBT RMSE | 27,71 |
+| GBT R² | 0,9594 |
+| Lag-24h baseline RMSE | 49,48 |
+| Lag-24h baseline R² | 0,8704 |
+| Baseline'a göre RMSE azalması | %44,0 |
 
-## Repository layout
+Sonuçlar `training_metrics.json`, `inference_metrics.json` ve tam yıl pipeline konsol çıktısıyla doğrulanmıştır.
+
+## Veri hattı
+
+1. `01_data_ingestion.py`: Aylık NYC TLC Parquet dosyalarını okur, veri kalitesi filtrelerini uygular, taksi bölgesi bilgileriyle birleştirir ve temiz Parquet çıktısı üretir.
+2. `02_feature_engineering.py`: Bölge-saat talebini hesaplar; saat, gün, lag-1, lag-24 ve üç gözlemlik kayan ortalama özelliklerini üretir.
+3. `03_model_training.py`: Ocak-Kasım verisiyle MLlib GBT modelini eğitir, Aralık verisinde değerlendirir ve lag-24 persistence baseline ile karşılaştırır.
+4. `04_inference.py`: Kaydedilmiş modeli yükler, Aralık verisinde batch inference gerçekleştirir ve metrikleri kaydeder.
+5. `05_visualization.py`: Büyük agregasyonları Spark üzerinde yapar; yalnızca grafik boyutundaki sonuçları Pandas'a aktarır.
+
+## Klasör yapısı
 
 ```text
-401/
-├── 401-project/
-│   ├── run_all.py
-│   ├── veri_indirme.py
-│   ├── reports/
-│   └── data/                 # generated locally; not included
-├── src/
-│   ├── project_config.py
-│   └── 01_...py through 05_...py
-├── hadoop/bin/               # optional Windows compatibility binaries
-├── requirements.txt
-└── DEMO_GUIDE.md
+Bil-401-Project/
+|-- 401-project/
+|   |-- data/
+|   |   |-- raw/
+|   |   |-- processed/
+|   |   |-- feature_store/
+|   |   |-- model/
+|   |   `-- predictions/
+|   |-- reports/
+|   |-- run_all.py
+|   `-- veri_indirme.py
+|-- src/
+|   |-- 01_data_ingestion.py
+|   |-- 02_feature_engineering.py
+|   |-- 03_model_training.py
+|   |-- 04_inference.py
+|   |-- 05_visualization.py
+|   `-- project_config.py
+|-- hadoop/bin/
+|-- README.md
+|-- DEMO_GUIDE.md
+`-- requirements.txt
 ```
 
-## Data sources
+## Veri kaynakları
 
-- NYC TLC Yellow Taxi Trip Records (2019 monthly Parquet): `https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page`
-- Direct Parquet URL pattern: `https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2019-MM.parquet`
-- Taxi Zone Lookup: `https://d37ci6vzurychx.cloudfront.net/misc/taxi_zone_lookup.csv`
+- NYC TLC Yellow Taxi Trip Records: `https://www.nyc.gov/site/tlc/about/tlc-trip-record-data.page`
+- Aylık Parquet adres şablonu: `https://d37ci6vzurychx.cloudfront.net/trip-data/yellow_tripdata_2019-AA.parquet`
+- Taksi bölgesi eşleme dosyası: `https://d37ci6vzurychx.cloudfront.net/misc/taxi_zone_lookup.csv`
 
-The raw data is public but intentionally not included in the submission because of its size. The downloader recreates the exact three-month experiment.
+Ham veri, dosya boyutu nedeniyle teslim paketine eklenmez. İndirme betiği mevcut ve dolu dosyaları atlar; bu nedenle kesilen işlem yeniden başlatılabilir.
 
-## Requirements
+## Ortam gereksinimleri
 
-- Python 3.10 or 3.11
-- Java JDK 17 (`JAVA_HOME` must point to the JDK)
-- Approximately 25 GB free disk space for download, intermediate Parquet, model, and predictions
-- 16 GB RAM recommended; the scripts default to an 8 GB Spark driver
+- Python 3.10 veya 3.11
+- JDK 17
+- PySpark 3.5.1
+- Yeterli boş disk alanı
+- Windows'ta gerekirse proje ile verilen `hadoop/bin` uyumluluk dosyaları
 
-Create and activate a virtual environment, then run from the `401-project` directory:
+Kurulum:
 
 ```bash
-python -m pip install -r ../requirements.txt
-python run_all.py --download
+python -m pip install -r requirements.txt
 ```
 
-If the data is already under `401-project/data/raw/`, omit `--download`:
+Windows'ta `JAVA_HOME`, JDK 17 ana klasörünü göstermelidir; `bin` klasörünü veya JDK 22 kurulumunu göstermemelidir.
+
+Örnek Anaconda Prompt ayarı:
+
+```bat
+set "JAVA_HOME=C:\Program Files\Eclipse Adoptium\jdk-17.0.17.10-hotspot"
+set "HADOOP_HOME=C:\Bil-401-Project\hadoop"
+set "PATH=%HADOOP_HOME%\bin;%JAVA_HOME%\bin;%PATH%"
+mkdir C:\spark-temp
+set "TEMP=C:\spark-temp"
+set "TMP=C:\spark-temp"
+set "SPARK_LOCAL_DIRS=C:\spark-temp"
+```
+
+`NativeIO$Windows.access0` hatası alınırsa `hadoop.dll` ve `winutils.exe` dosyalarının PySpark ile gelen Hadoop 3.3.x sürümüyle uyumlu olduğu doğrulanmalıdır. Kullanıcı dizininde Türkçe karakter bulunuyorsa ASCII karakterli `C:\spark-temp` klasörü geçici Spark yolu olarak kullanılmalıdır.
+
+## Tam yıl verisini indirme
+
+`401-project` klasöründe:
+
+```bash
+python veri_indirme.py --year 2019 --months 01,02,03,04,05,06,07,08,09,10,11,12
+```
+
+Ocak-Mart dosyaları zaten varsa betik bunları tekrar indirmez ve yalnızca eksik ayları tamamlar.
+
+## Çalıştırma
+
+Veriler hazırsa:
 
 ```bash
 python run_all.py
 ```
 
-To choose months explicitly:
+Veriyi indirip ardından hattı çalıştırmak için:
 
 ```bash
-python run_all.py --download --months 01,02,03
+python run_all.py --download
 ```
 
-Environment overrides:
+Görselleştirmeyi atlamak için:
 
-- `SPARK_DRIVER_MEMORY` (default `8g`)
-- `SPARK_MASTER` (default `local[*]`)
-- `JAVA_HOME` (must be configured by the user/system)
-- `HADOOP_HOME` (optional on Windows; an existing value is respected)
+```bash
+python run_all.py --skip-visualization
+```
 
-## Generated outputs
+## Deneysel ayrım
 
-The pipeline creates these paths under `401-project/`:
+- Eğitim: `hour_start < 2019-12-01` (Ocak-Kasım 2019)
+- Test: `2019-12-01 <= hour_start < 2020-01-01` (Aralık 2019)
+- Batch inference: Aralık 2019
+
+Test ve inference aynı Aralık kayıtlarını kullandığı için iki aşamadaki GBT metriklerinin aynı olması beklenir. Aralık ikinci bir bağımsız inference holdout'u değil, kronolojik final test dönemidir.
+
+## Üretilen çıktılar
 
 - `data/processed/taxi_clean/`
 - `data/feature_store/`
@@ -81,17 +139,26 @@ The pipeline creates these paths under `401-project/`:
 - `reports/borough_demand.png`
 - `reports/prediction_vs_actual.png`
 
-## Reproducibility and interpretation
+`training_metrics.json`, GBT ve lag-24 baseline için RMSE ve R² değerlerini içerir. `inference_metrics.json`, Aralık tahmin sayısını ve batch-inference metriklerini içerir. Bu final çalıştırmanın sonuçları rapora, sunuma ve demo konuşma metnine işlenmiştir.
 
-The split is chronological: records before 1 March 2019 are used for training and March is used for testing and demonstration inference. The reported inference and test metrics therefore match by design; March is not a second unseen holdout. The model uses `hour_of_day`, `day_of_week`, `lag_1h`, `lag_24h`, and `rolling_avg_3h`. The training script now records a lag-24h persistence baseline so that the GBT result is not interpreted from R² alone.
+## Disk kullanımı
 
-The current validated scope is three months, not the full 2019 year. Expanding the month list does not require an architectural change, but it increases download, shuffle, disk, and memory costs. For a strict unseen production evaluation, a future run should reserve a fourth month for inference after training and model-selection periods.
+NYC TLC'nin aylık dosyaları sıkıştırılmış Parquet olduğu için indirme boyutu, satırların bellekte veya CSV biçiminde kaplayacağı alandan çok daha küçüktür. En yüksek disk kullanımı ham indirmeden ziyade temiz Parquet, feature store, prediction çıktıları ve Spark geçici shuffle dosyaları birlikte oluştuğunda görülebilir.
 
-## Troubleshooting
+Windows PowerShell ile veri klasörünün gerçek boyutu şöyle ölçülebilir:
 
-- `JAVA_GATEWAY_EXITED`: verify `java -version` and `JAVA_HOME` (JDK 17).
-- Windows Hadoop file-system errors: set `HADOOP_HOME` to the included `hadoop` directory or a trusted compatible installation.
-- Out-of-memory during shuffle: lower the month count or increase `SPARK_DRIVER_MEMORY`; close other applications.
-- Existing-output conflicts are avoided because Spark writes generated datasets and the model with overwrite mode.
+```powershell
+(Get-ChildItem "C:\Bil-401-Project\401-project\data" -Recurse -File |
+    Measure-Object Length -Sum).Sum / 1GB
+```
 
-See `DEMO_GUIDE.md` for the 20-minute presentation plan.
+## Bilinen sınırlılıklar
+
+- Uygulama `local[*]` modunda tek bilgisayarın çekirdeklerini kullanır; çok düğümlü cluster deneyi yapılmaz.
+- Lag özellikleri satır ofsetiyle hesaplanır. Eksik bölge-saat kaydı varsa lag-24 tam olarak 24 saat öncesini temsil etmeyebilir.
+- Hava durumu, tatil, etkinlik ve komşu bölge bilgileri modele dahil değildir.
+- Aralık, hem kronolojik test hem batch-inference gösterim dönemidir.
+
+## Sonuçların kaynağı ve yorum
+
+Final raporda yalnızca son tam yıl çalıştırmasında üretilen `training_metrics.json`, `inference_metrics.json`, konsol satır sayıları ve grafikler kullanılmıştır. Önceki üç aylık çalışmanın metrikleri tam yıl sonucu olarak sunulmamıştır. GBT, lag-24 baseline'a kıyasla RMSE'yi yaklaşık %44 azaltmış; Midtown Center grafiğinde günlük talep döngüsünü güçlü biçimde izlemiş, ancak bazı keskin zirveleri yumuşatmıştır.

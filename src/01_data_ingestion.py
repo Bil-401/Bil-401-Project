@@ -1,11 +1,11 @@
 from pyspark.sql.functions import col, year
 
-from project_config import create_spark_session, data_path
+from project_config import DATA_YEAR, create_spark_session, data_path
 
 spark = create_spark_session("NYC_Taxi_Ingestion")
 
 # Ham veriyi oku
-df = spark.read.parquet(data_path("raw", "yellow_tripdata_2019-*.parquet"))
+df = spark.read.parquet(data_path("raw", f"yellow_tripdata_{DATA_YEAR}-*.parquet"))
 
 print(f"Toplam satır: {df.count():,}")
 print(f"Kolonlar: {df.columns}")
@@ -17,7 +17,7 @@ df_clean = df.filter(
     (col("trip_distance") > 0) &
     (col("fare_amount") > 0) &
     (col("PULocationID").isNotNull()) &
-    (year(col("tpep_pickup_datetime")) == 2019)
+    (year(col("tpep_pickup_datetime")) == DATA_YEAR)
 )
 
 # Zone lookup join

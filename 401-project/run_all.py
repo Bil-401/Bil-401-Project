@@ -43,8 +43,8 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--months",
-        default="01,02,03",
-        help="Comma-separated months passed to the downloader (default: 01,02,03).",
+        default="01,02,03,04,05,06,07,08,09,10,11,12",
+        help="İndirilecek aylar (varsayılan: 2019 yılının 12 ayı).",
     )
     parser.add_argument(
         "--skip-visualization",

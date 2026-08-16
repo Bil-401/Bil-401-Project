@@ -11,6 +11,12 @@ PROJECT_DIR = REPOSITORY_ROOT / "401-project"
 DATA_DIR = PROJECT_DIR / "data"
 REPORTS_DIR = PROJECT_DIR / "reports"
 
+# Doğrulanacak tam yıl deney düzeni:
+# 2019 Ocak-Kasım eğitim, 2019 Aralık kronolojik test ve batch inference.
+DATA_YEAR = 2019
+TEST_START = "2019-12-01"
+TEST_END = "2020-01-01"
+
 
 def data_path(*parts: str) -> str:
     return str(DATA_DIR.joinpath(*parts))

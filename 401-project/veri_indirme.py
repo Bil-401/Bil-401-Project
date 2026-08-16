@@ -15,8 +15,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--year", type=int, default=2019)
     parser.add_argument(
         "--months",
-        default="01,02,03",
-        help="Comma-separated month numbers, e.g. 01,02,03 or 01,...,12.",
+        default="01,02,03,04,05,06,07,08,09,10,11,12",
+        help="Virgülle ayrılmış ay numaraları; varsayılan 2019 yılının 12 ayıdır.",
     )
     parser.add_argument("--force", action="store_true", help="Overwrite files already present.")
     return parser.parse_args()

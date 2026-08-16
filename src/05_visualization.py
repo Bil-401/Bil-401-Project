@@ -37,7 +37,7 @@ sample_zone = (
 plt.figure(figsize=(14, 5))
 plt.plot(sample_zone["hour_start"], sample_zone["demand"], label="Gerçek", alpha=0.8)
 plt.plot(sample_zone["hour_start"], sample_zone["prediction"], label="Tahmin", alpha=0.8)
-plt.title("Midtown Center — Gerçek vs Tahmin (1 Hafta)")
+plt.title("Midtown Center - Gerçek ve Tahmin (Aralık 2019, İlk Hafta)")
 plt.legend()
 plt.tight_layout()
 plt.savefig(reports_path("prediction_vs_actual.png"), dpi=150)

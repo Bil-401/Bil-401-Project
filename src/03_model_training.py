@@ -6,7 +6,7 @@ from pyspark.ml.regression import GBTRegressor
 from pyspark.ml import Pipeline
 from pyspark.ml.evaluation import RegressionEvaluator
 
-from project_config import create_spark_session, data_path, reports_path
+from project_config import TEST_END, TEST_START, create_spark_session, data_path, reports_path
 
 spark = create_spark_session("NYC_Taxi_GBT")
 
@@ -20,9 +20,12 @@ assembler = VectorAssembler(
     outputCol="features"
 )
 
-# Train/test split (kronolojik - shuffle etme!)
-train = df.filter(col("hour_start") < "2019-03-01")
-test  = df.filter(col("hour_start") >= "2019-03-01")
+# Tam yıl için kronolojik ayrım (shuffle yok):
+# Ocak-Kasım eğitim, Aralık test.
+train = df.filter(col("hour_start") < TEST_START)
+test = df.filter(
+    (col("hour_start") >= TEST_START) & (col("hour_start") < TEST_END)
+)
 
 # Model
 gbt = GBTRegressor(
@@ -56,7 +59,11 @@ baseline_rmse = evaluator_rmse.evaluate(baseline_predictions)
 baseline_r2 = evaluator_r2.evaluate(baseline_predictions)
 
 metrics = {
-    "split": {"train_before": "2019-03-01", "test_from": "2019-03-01"},
+    "split": {
+        "train_before": TEST_START,
+        "test_from": TEST_START,
+        "test_until": TEST_END,
+    },
     "gbt": {"rmse": gbt_rmse, "r2": gbt_r2},
     "lag_24h_baseline": {"rmse": baseline_rmse, "r2": baseline_r2},
 }
